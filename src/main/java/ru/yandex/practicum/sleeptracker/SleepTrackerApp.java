@@ -11,8 +11,7 @@ import java.util.stream.Collectors;
 
 public class SleepTrackerApp {
 
-    private static final DateTimeFormatter FORMATTER =
-            DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd.MM.yy HH:mm");
 
     public static void main(String[] args) throws IOException {
 

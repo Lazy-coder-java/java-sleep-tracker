@@ -3,8 +3,7 @@ package ru.yandex.practicum.sleeptracker;
 import java.util.List;
 import java.util.function.Function;
 
-public class MinDurationAnalysis
-        implements Function<List<SleepingSession>, SleepAnalysisResult> {
+public class MinDurationAnalysis implements Function<List<SleepingSession>, SleepAnalysisResult> {
 
     @Override
     public SleepAnalysisResult apply(List<SleepingSession> sessions) {
