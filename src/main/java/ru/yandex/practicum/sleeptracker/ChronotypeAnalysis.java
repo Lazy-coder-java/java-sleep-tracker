@@ -1,5 +1,6 @@
 package ru.yandex.practicum.sleeptracker;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -13,10 +14,7 @@ public class ChronotypeAnalysis implements Function<List<SleepingSession>, Sleep
     public SleepAnalysisResult apply(List<SleepingSession> sessions) {
 
         Map<Chronotype, Long> counts = sessions.stream()
-                .collect(Collectors.groupingBy(
-                        this::classify,
-                        Collectors.counting()
-                ));
+                .filter(this::isNightSleep).collect(Collectors.groupingBy(this::classify, Collectors.counting()));
 
         long owl = counts.getOrDefault(Chronotype.OWL, 0L);
         long lark = counts.getOrDefault(Chronotype.LARK, 0L);
@@ -35,20 +33,34 @@ public class ChronotypeAnalysis implements Function<List<SleepingSession>, Sleep
         return new SleepAnalysisResult(DESCRIPTION, result);
     }
 
+    private boolean isNightSleep(SleepingSession session) {
+
+        LocalTime start = session.getStart().toLocalTime();
+        LocalTime end = session.getEnd().toLocalTime();
+
+        return start.isAfter(LocalTime.of(18, 0))
+                || start.isBefore(LocalTime.of(6, 0))
+                || end.isBefore(LocalTime.of(6, 0));
+    }
+
     private Chronotype classify(SleepingSession session) {
 
-        var sleep = session.getStart().toLocalTime();
-        var wake = session.getEnd().toLocalTime();
+        LocalTime sleep = session.getStart().toLocalTime();
+        LocalTime wake = session.getEnd().toLocalTime();
 
-        if (wake.isAfter(java.time.LocalTime.of(9, 0))) {
+        boolean crossesMidnight = session.getEnd().toLocalDate().isAfter(session.getStart().toLocalDate());
+
+        if ((sleep.isAfter(LocalTime.of(23, 0)) || crossesMidnight)
+                && wake.isAfter(LocalTime.of(9, 0))) {
             return Chronotype.OWL;
         }
 
-        if (sleep.isBefore(java.time.LocalTime.of(22, 0))
-                && wake.isBefore(java.time.LocalTime.of(7, 0))) {
+        if (sleep.isBefore(LocalTime.of(22, 0))
+                && wake.isBefore(LocalTime.of(7, 0))) {
             return Chronotype.LARK;
         }
 
         return Chronotype.PIGEON;
     }
 }
+

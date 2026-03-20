@@ -1,7 +1,6 @@
 package ru.yandex.practicum.sleeptracker;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -21,41 +20,43 @@ public class SleeplessNightsAnalysis implements Function<List<SleepingSession>, 
 
         long nightsWithSleep = sessions.stream()
                 .filter(this::intersectsNight)
-                .map(s -> {
-                    LocalDate date = s.getStart().toLocalDate();
-                    if (s.getStart().toLocalTime().isBefore(NIGHT_END)) {
-                        return date.minusDays(1);
-                    }
-                    return date;
-                })
+                .map(this::resolveNightDate)
                 .distinct()
                 .count();
 
         LocalDate firstNight = sessions.stream()
-                .map(s -> s.getStart().toLocalDate())
+                .map(this::resolveNightDate)
                 .min(LocalDate::compareTo)
                 .orElseThrow();
 
         LocalDate lastNight = sessions.stream()
-                .map(s -> s.getStart().toLocalDate())
+                .map(this::resolveNightDate)
                 .max(LocalDate::compareTo)
                 .orElseThrow();
 
-        long totalNights = ChronoUnit.DAYS.between(firstNight, lastNight);
+        long totalNights = ChronoUnit.DAYS.between(firstNight, lastNight) + 1;
 
         long sleepless = totalNights - nightsWithSleep;
 
         return new SleepAnalysisResult(DESCRIPTION, Math.max(0, sleepless));
     }
 
-    private boolean intersectsNight(SleepingSession s) {
+    private LocalDate resolveNightDate(SleepingSession session) {
+        LocalDate date = session.getStart().toLocalDate();
 
-        LocalDateTime start = s.getStart();
-        LocalDateTime end = s.getEnd();
+        if (session.getStart().toLocalTime().isBefore(NIGHT_END)) {
+            return date.minusDays(1);
+        }
 
-        LocalDateTime nightStart = start.toLocalDate().atStartOfDay();
-        LocalDateTime nightEnd = nightStart.plusHours(6);
+        return date;
+    }
 
-        return end.isAfter(nightStart) && start.isBefore(nightEnd);
+    private boolean intersectsNight(SleepingSession session) {
+
+        LocalTime start = session.getStart().toLocalTime();
+        LocalTime end = session.getEnd().toLocalTime();
+
+        return start.isBefore(LocalTime.of(6, 0)) ||
+                end.isAfter(LocalTime.MIDNIGHT);
     }
 }

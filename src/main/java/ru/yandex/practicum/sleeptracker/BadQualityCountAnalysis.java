@@ -5,6 +5,8 @@ import java.util.function.Function;
 
 public class BadQualityCountAnalysis implements Function<List<SleepingSession>, SleepAnalysisResult> {
 
+    private static final String DESCRIPTION = "Bad quality sessions";
+
     @Override
     public SleepAnalysisResult apply(List<SleepingSession> sessions) {
 
@@ -12,9 +14,6 @@ public class BadQualityCountAnalysis implements Function<List<SleepingSession>, 
                 .filter(s -> s.getQuality() == SleepQuality.BAD)
                 .count();
 
-        return new SleepAnalysisResult(
-                "Bad quality sessions",
-                count
-        );
+        return new SleepAnalysisResult(DESCRIPTION, count);
     }
 }
